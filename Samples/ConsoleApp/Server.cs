@@ -8,26 +8,46 @@ using Newtonsoft.Json;
 namespace Fleck.Samples.ConsoleApp
 {
 
-    public class MessageModel
+    public class SocketModel
     {
 
+        /// <summary>
+        /// 是否链接
+        /// </summary>
         public bool IsConnect
         {
             get;
             set;
         } = false;
 
-        public string id
+        /// <summary>
+        /// Socket链接的唯一标识
+        /// </summary>
+        public string sPriKey
         {
             get;
             set;
         }
 
-        public string data
+        /// <summary>
+        /// 需要发送消息的socket的标识
+        /// </summary>
+        public string sSendPriKey
         {
             get;
             set;
         }
+
+        /// <summary>
+        /// 发送/接受的数据
+        /// </summary>
+        public object message
+        {
+            get;
+            set;
+        }
+
+
 
         public string toJson()
         {
@@ -49,8 +69,9 @@ namespace Fleck.Samples.ConsoleApp
                         {
                             Console.WriteLine(socket.ToString());
                             allSockets.Add(socket);
-                            socket.Send(new MessageModel() {
-                                id = socket.ConnectionInfo.Id.ToString(),
+                            socket.Send(new SocketModel()
+                            {
+                                sPriKey = socket.ConnectionInfo.Id.ToString(),
                                 IsConnect = true
                             }.toJson());
                         };
@@ -61,21 +82,21 @@ namespace Fleck.Samples.ConsoleApp
                         };
                     socket.OnMessage = message =>
                         {
-                            var requesData=JsonConvert.DeserializeObject<MessageModel>(message);
-                            string Id = socket.ConnectionInfo.Id.ToString();
-                            var currentSocket = allSockets.Where(m => m.ConnectionInfo.Id.ToString() == Id).SingleOrDefault();
-                            if (currentSocket != null)
+                            var revices = JsonConvert.DeserializeObject<SocketModel>(message);
+                            if (!string.IsNullOrEmpty(revices.sSendPriKey))
                             {
-                                currentSocket.Send(new MessageModel()
+                                var sendSocket = allSockets.Where(m => m.ConnectionInfo.Id.ToString() == revices.sSendPriKey).SingleOrDefault();
+                                if (sendSocket != null)
                                 {
-                                    id = Id,
-                                    data = "success"
-                                }.toJson());
+                                    sendSocket.Send(new SocketModel()
+                                    {
+                                        sPriKey = sendSocket.ConnectionInfo.Id.ToString(),
+                                        message = "success"
+                                    }.toJson());
+                                }
                             }
                         };
                 });
-
-
             var input = Console.ReadLine();
             while (input != "exit")
             {
