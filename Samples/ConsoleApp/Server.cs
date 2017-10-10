@@ -62,7 +62,7 @@ namespace Fleck.Samples.ConsoleApp
         {
             FleckLog.Level = LogLevel.Debug;
             var allSockets = new List<IWebSocketConnection>();
-            var server = new WebSocketServer("ws://127.0.0.1:8181");
+            var server = new WebSocketServer("ws://127.0.0.1:7777");
             server.Start(socket =>
                 {
                     socket.OnOpen = () =>
